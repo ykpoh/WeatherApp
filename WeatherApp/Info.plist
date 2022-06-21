@@ -21,5 +21,7 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Precise location is used to give you the most accurate minute-by-minute weather and forecast for your current location</string>
 </dict>
 </plist>
