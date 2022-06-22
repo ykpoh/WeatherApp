@@ -31,6 +31,7 @@ class WeatherViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UINib(nibName: "\(WeatherDetailTableViewCell.self)", bundle: nil), forCellReuseIdentifier: "\(WeatherDetailTableViewCell.self)")
@@ -41,6 +42,7 @@ class WeatherViewController: UIViewController {
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            locationManager.requestLocation()
         }
         
         viewModel.locationButtonTitle.bind { [weak self] value in
@@ -83,22 +85,31 @@ class WeatherViewController: UIViewController {
     }
     
     @objc func locationButtonPressed() {
-        let searchVC = SearchLocationController()
-        navigationController?.pushViewController(searchVC, animated: true)
+        let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "\(SearchLocationController.self)") as? SearchLocationController
+        navigationController?.pushViewController(vc!, animated: true)
     }
     
 }
 
 extension WeatherViewController: CLLocationManagerDelegate {
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            let query = "\(manager.location!.coordinate.latitude),\(manager.location!.coordinate.longitude)"
-            viewModel.getCurrentWeather(query: query)
-        default:
-            print("location not allowed")
-        }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error)
     }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let latitude = manager.location?.coordinate.latitude, let longitude = manager.location?.coordinate.longitude else { return }
+        viewModel.getCurrentWeather(latitude: latitude, longitude: longitude)
+    }
+    
+//    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+//        switch manager.authorizationStatus {
+//        case .denied, .notDetermined, .restricted:
+//            locationManager.requestWhenInUseAuthorization()
+//        default:
+//            print("location not allowed")
+//        }
+//    }
 }
 
 extension WeatherViewController: UITableViewDelegate, UITableViewDataSource {

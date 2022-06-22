@@ -15,7 +15,7 @@ protocol WeatherViewModelProtocol {
     var feelsLikeTemperature: Box<String?> { get }
     var weatherDetails: Box<[WeatherDetailTVCViewModel]> { get }
     var error: Box<Error?> { get }
-    func getCurrentWeather(query: String)
+    func getCurrentWeather(latitude: Double, longitude: Double)
 }
 
 class WeatherViewModel: WeatherViewModelProtocol {
@@ -37,9 +37,16 @@ class WeatherViewModel: WeatherViewModelProtocol {
     
     init(apiService: WeatherAPIServiceProtocol = WeatherAPIService()) {
         self.apiService = apiService
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateLocation(_:)), name: Constant.updateLocationNotification, object: nil)
     }
     
-    func getCurrentWeather(query: String) {
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    func getCurrentWeather(latitude: Double, longitude: Double) {
+        let query = "\(latitude),\(longitude)"
         apiService.getCurrentWeather(query: query) { [weak self] response, error in
             guard let strongSelf = self else { return }
             if let response = response {
@@ -71,6 +78,11 @@ class WeatherViewModel: WeatherViewModelProtocol {
                 strongSelf.error.value = error
             }
         }
+    }
+    
+    @objc func updateLocation(_ notification: Notification) {
+        guard let userInfo = notification.userInfo, let location = userInfo["location"] as? Location, let latitude = location.lat, let longitude = location.lon else { return }
+        getCurrentWeather(latitude: latitude, longitude: longitude)
     }
     
 }
