@@ -23,6 +23,20 @@ class WeatherViewController: UIViewController {
     
     @IBOutlet weak var tableView: UITableView!
     
+    lazy var hoverView: UIView = {
+        let hoverView = UIView(frame: view.bounds)
+        hoverView.translatesAutoresizingMaskIntoConstraints = false
+        hoverView.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
+        return hoverView
+    }()
+    
+    lazy var activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.center = hoverView.center
+        activityIndicator.color = .white
+        return activityIndicator
+    }()
+    
     let locationManager = CLLocationManager()
     
     let viewModel = WeatherViewModel()
@@ -31,7 +45,6 @@ class WeatherViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UINib(nibName: "\(WeatherDetailTableViewCell.self)", bundle: nil), forCellReuseIdentifier: "\(WeatherDetailTableViewCell.self)")
@@ -39,10 +52,18 @@ class WeatherViewController: UIViewController {
         locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
         
         locationManager.requestWhenInUseAuthorization()
-        if CLLocationManager.locationServicesEnabled() {
-            locationManager.delegate = self
-            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-            locationManager.requestLocation()
+        
+        switch locationManager.authorizationStatus {
+        case .denied, .restricted:
+            presentAllowLocationAlert()
+        default:
+            if CLLocationManager.locationServicesEnabled() {
+                locationManager.delegate = self
+                locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+                locationManager.requestLocation()
+            } else {
+                presentAllowLocationAlert()
+            }
         }
         
         viewModel.locationButtonTitle.bind { [weak self] value in
@@ -77,11 +98,31 @@ class WeatherViewController: UIViewController {
             strongSelf.tableView.reloadData()
         }
         
-        viewModel.error.bind { [weak self] value in
+        viewModel.errorMessage.bind { [weak self] value in
             guard let strongSelf = self else { return }
             guard let value = value else { return }
-            strongSelf.showAlert(value.localizedDescription)
+            strongSelf.showAlert(value)
         }
+        
+        viewModel.showSpinner.bind { [weak self] value in
+            guard let strongSelf = self else { return }
+            if value {
+                strongSelf.showSpinner()
+            } else {
+                strongSelf.removeSpinner()
+            }
+        }
+    }
+    
+    func showSpinner() {
+        activityIndicator.startAnimating()
+        view.addSubview(activityIndicator)
+        view.addSubview(hoverView)
+    }
+    
+    func removeSpinner() {
+        hoverView.removeFromSuperview()
+        activityIndicator.removeFromSuperview()
     }
     
     @objc func locationButtonPressed() {
@@ -89,27 +130,31 @@ class WeatherViewController: UIViewController {
         navigationController?.pushViewController(vc!, animated: true)
     }
     
+    private func presentAllowLocationAlert() {
+        let alertController = UIAlertController(title: "WeatherApp works best with Location Services turned on.", message: "You will get accurate weather forecast based on your current location when you turn on Location Services for WeatherApp", preferredStyle: .alert)
+        
+        let cancelAction = UIAlertAction(title: "Keep Location Services Off", style: .cancel, handler: nil)
+        let settingsAction = UIAlertAction(title: "Turn On in Settings", style: .default) { (UIAlertAction) in
+            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)! as URL)
+        }
+        
+        alertController.addAction(cancelAction)
+        alertController.addAction(settingsAction)
+        present(alertController, animated: true, completion: nil)
+    }
+    
 }
 
 extension WeatherViewController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print(error)
+        
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let latitude = manager.location?.coordinate.latitude, let longitude = manager.location?.coordinate.longitude else { return }
         viewModel.getCurrentWeather(latitude: latitude, longitude: longitude)
     }
-    
-//    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-//        switch manager.authorizationStatus {
-//        case .denied, .notDetermined, .restricted:
-//            locationManager.requestWhenInUseAuthorization()
-//        default:
-//            print("location not allowed")
-//        }
-//    }
 }
 
 extension WeatherViewController: UITableViewDelegate, UITableViewDataSource {

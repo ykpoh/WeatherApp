@@ -14,8 +14,10 @@ protocol WeatherViewModelProtocol {
     var conditionIconImageURL: Box<URL?> { get }
     var feelsLikeTemperature: Box<String?> { get }
     var weatherDetails: Box<[WeatherDetailTVCViewModel]> { get }
-    var error: Box<Error?> { get }
+    var errorMessage: Box<String?> { get }
+    var showSpinner: Box<Bool> { get }
     func getCurrentWeather(latitude: Double, longitude: Double)
+    func updateLocation(_ notification: Notification)
 }
 
 class WeatherViewModel: WeatherViewModelProtocol {
@@ -31,7 +33,9 @@ class WeatherViewModel: WeatherViewModelProtocol {
     
     var weatherDetails: Box<[WeatherDetailTVCViewModel]> = Box([])
     
-    var error: Box<Error?> = Box(nil)
+    var errorMessage: Box<String?> = Box(nil)
+    
+    var showSpinner: Box<Bool> = Box(false)
     
     var apiService: WeatherAPIServiceProtocol
     
@@ -46,43 +50,60 @@ class WeatherViewModel: WeatherViewModelProtocol {
     }
     
     func getCurrentWeather(latitude: Double, longitude: Double) {
+        showSpinner.value = true
         let query = "\(latitude),\(longitude)"
         apiService.getCurrentWeather(query: query) { [weak self] response, error in
             guard let strongSelf = self else { return }
+            strongSelf.showSpinner.value = false
+            
             if let response = response {
-                strongSelf.locationButtonTitle.value = response.location.name
-                strongSelf.temperature.value = "\(response.current.tempC)°"
-                strongSelf.conditionText.value = response.current.condition.text
-                strongSelf.feelsLikeTemperature.value = "Feels like \(response.current.feelslikeC)°"
-                strongSelf.conditionIconImageURL.value = URL(string: response.current.condition.icon.replacingOccurrences(of: "//", with: "https://"))
-                
-                var weatherDetailViewModels = [WeatherDetailTVCViewModel]()
-                let wind = WeatherDetailTVCViewModel(title: "Wind", value: "\(response.current.windDir) \(response.current.windKph) km/h")
-                weatherDetailViewModels.append(wind)
-                
-                let windGust = WeatherDetailTVCViewModel(title: "Wind Gust", value: "\(response.current.gustKph) km/h")
-                weatherDetailViewModels.append(windGust)
-                
-                let humidity = WeatherDetailTVCViewModel(title: "Humidity", value: "\(response.current.humidity)%")
-                weatherDetailViewModels.append(humidity)
-                
-                let pressure = WeatherDetailTVCViewModel(title: "Pressure", value: "\(response.current.pressureMB) mb")
-                weatherDetailViewModels.append(pressure)
-                
-                let visibility = WeatherDetailTVCViewModel(title: "Visibility", value: "\(response.current.visKM) km")
-                weatherDetailViewModels.append(visibility)
-                
-                strongSelf.weatherDetails.value = weatherDetailViewModels
-                
+                strongSelf.parseCurrentWeatherResponse(response)
             } else if let error = error {
-                strongSelf.error.value = error
+                strongSelf.errorMessage.value = strongSelf.getAPIErrorMessage(error)
             }
         }
     }
     
     @objc func updateLocation(_ notification: Notification) {
-        guard let userInfo = notification.userInfo, let location = userInfo["location"] as? Location, let latitude = location.lat, let longitude = location.lon else { return }
+        guard let userInfo = notification.userInfo, let location = userInfo[Constant.userInfoLocation] as? Location, let latitude = location.lat, let longitude = location.lon else { return }
         getCurrentWeather(latitude: latitude, longitude: longitude)
+    }
+    
+    private func parseCurrentWeatherResponse(_ response: CurrentWeather) {
+        var weatherDetailViewModels = [WeatherDetailTVCViewModel]()
+        
+        locationButtonTitle.value = response.location?.name
+        
+        if let current = response.current {
+            temperature.value = "\(current.tempC ?? 0.0)°"
+            conditionText.value = current.condition?.text
+            feelsLikeTemperature.value = "Feels like \(current.feelslikeC ?? 0.0)°"
+            conditionIconImageURL.value = URL(string: current.condition?.icon?.replacingOccurrences(of: "//", with: "https://") ?? "")
+            
+            let wind = WeatherDetailTVCViewModel(title: "Wind", value: "\(current.windDir ?? "") \(current.windKph ?? 0.0) km/h")
+            weatherDetailViewModels.append(wind)
+            
+            let windGust = WeatherDetailTVCViewModel(title: "Wind Gust", value: "\(current.gustKph ?? 0.0) km/h")
+            weatherDetailViewModels.append(windGust)
+            
+            let humidity = WeatherDetailTVCViewModel(title: "Humidity", value: "\(current.humidity ?? 0.0)%")
+            weatherDetailViewModels.append(humidity)
+            
+            let pressure = WeatherDetailTVCViewModel(title: "Pressure", value: "\(current.pressureMB ?? 0.0) mb")
+            weatherDetailViewModels.append(pressure)
+            
+            let visibility = WeatherDetailTVCViewModel(title: "Visibility", value: "\(current.visKM ?? 0.0) km")
+            weatherDetailViewModels.append(visibility)
+        }
+        
+        weatherDetails.value = weatherDetailViewModels
+    }
+    
+    private func getAPIErrorMessage(_ error: WeatherAPIError) -> String {
+        switch error {
+        case .failedRequest(let message), .invalidData(let message), .invalidResponse(let message), .noData(let message):
+            return message
+        }
     }
     
 }

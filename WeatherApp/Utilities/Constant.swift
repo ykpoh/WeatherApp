@@ -9,4 +9,5 @@ import Foundation
 
 class Constant {
     static let updateLocationNotification = NSNotification.Name("UpdateLocation")
+    static let userInfoLocation = "location"
 }

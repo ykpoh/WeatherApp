@@ -33,7 +33,7 @@ class WeatherAPIService: WeatherAPIServiceProtocol {
     
     func getCurrentWeather(query: String, completion: @escaping (CurrentWeather?, WeatherAPIError?) -> ()) {
         let url = URL(string: "\(baseURLString)/current.json?key=\(apiKey)&q=\(replaceSpace(query))")!
-
+        
         session.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
@@ -54,7 +54,6 @@ class WeatherAPIService: WeatherAPIServiceProtocol {
     }
     
     func getLocationSearchResult(query: String, completion: @escaping ([Location]?, WeatherAPIError?) -> ()) {
-        
         let url = URL(string: "\(baseURLString)/search.json?key=\(apiKey)&q=\(replaceSpace(query))")!
         
         if let searchResultHolder = searchResultCache.object(forKey: url as AnyObject) as? SearchResultHolder {

@@ -9,6 +9,8 @@ import UIKit
 
 class SearchLocationController: UIViewController {
     
+    @IBOutlet weak var tableView: UITableView!
+    
     lazy var searchController: UISearchController = {
         let searchController = UISearchController()
         searchController.searchBar.sizeToFit()
@@ -19,15 +21,6 @@ class SearchLocationController: UIViewController {
         return searchController
     }()
     
-    lazy var tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.register(UINib(nibName: "\(SearchResultTableViewCell.self)", bundle: nil), forCellReuseIdentifier: "\(SearchResultTableViewCell.self)")
-        return tableView
-    }()
-    
     let viewModel = SearchLocationViewModel()
     
     override func viewDidLoad() {
@@ -35,18 +28,21 @@ class SearchLocationController: UIViewController {
         
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
-        view.addSubview(tableView)
         
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
-        
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.showsVerticalScrollIndicator = false
+        tableView.register(UINib(nibName: "\(SearchResultTableViewCell.self)", bundle: nil), forCellReuseIdentifier: "\(SearchResultTableViewCell.self)")
+
         viewModel.searchResults.bind { [weak self] result in
             guard let strongSelf = self else { return }
             strongSelf.tableView.reloadData()
+        }
+        
+        viewModel.errorMessage.bind { [weak self] value in
+            guard let strongSelf = self else { return }
+            guard let value = value else { return }
+            strongSelf.showAlert(value)
         }
     }
     

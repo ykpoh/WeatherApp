@@ -35,13 +35,20 @@ class SearchLocationViewModel: SearchLocationViewModelProtocol {
                 }
                 
             } else if let error = error {
-                
+                strongSelf.errorMessage.value = strongSelf.getAPIErrorMessage(error)
             }
         }
     }
     
     func postNotification(location: Location) {
-        let dict:[String: Location] = ["location": location]
+        let dict:[String: Location] = [Constant.userInfoLocation: location]
         NotificationCenter.default.post(name: Constant.updateLocationNotification, object: nil, userInfo: dict)
+    }
+    
+    private func getAPIErrorMessage(_ error: WeatherAPIError) -> String {
+        switch error {
+        case .failedRequest(let message), .invalidData(let message), .invalidResponse(let message), .noData(let message):
+            return message
+        }
     }
 }
