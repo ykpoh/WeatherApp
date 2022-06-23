@@ -24,12 +24,33 @@ class CurrentWeatherTests: XCTestCase {
         try super.tearDownWithError()
     }
     
-    func testDecode_ReturnsAccurateLocation() {
-        XCTAssertEqual(sut.location.name, "Seoul")
-        XCTAssertEqual(sut.location.region, "")
-        XCTAssertEqual(sut.location.country, "South Korea")
-        XCTAssertEqual(sut.location.lat, 37.57)
-        XCTAssertEqual(sut.location.lon, 127.0)
+    func testDecode_ReturnsLocation() {
+        let location = try! XCTUnwrap(sut.location)
+        XCTAssertEqual(location.name, "Seoul")
+        XCTAssertEqual(location.region, "")
+        XCTAssertEqual(location.country, "South Korea")
+        XCTAssertEqual(location.lat, 37.57)
+        XCTAssertEqual(location.lon, 127.0)
+        XCTAssertEqual(location.tz_id, "Asia/Seoul")
+        XCTAssertEqual(location.localtime_epoch, 1655986294)
+        XCTAssertEqual(location.localtime, "2022-06-23 21:11")
     }
 
+    func testDecode_ReturnsCurrent() {
+        let current = try! XCTUnwrap(sut.current)
+        XCTAssertEqual(current.tempC, 25.0)
+        XCTAssertEqual(current.windKph, 22.0)
+        XCTAssertEqual(current.windDegree, 230)
+        XCTAssertEqual(current.windDir, "SW")
+        XCTAssertEqual(current.pressureMB, 997.0)
+        XCTAssertEqual(current.humidity, 83)
+        XCTAssertEqual(current.feelslikeC, 28.5)
+        XCTAssertEqual(current.visKM, 4.8)
+        XCTAssertEqual(current.gustKph, 35.3)
+        
+        let condition = try! XCTUnwrap(current.condition)
+        XCTAssertEqual(condition.code, 1183)
+        XCTAssertEqual(condition.text, "Light rain")
+        XCTAssertEqual(condition.icon, "//cdn.weatherapi.com/weather/64x64/night/296.png")
+    }
 }
