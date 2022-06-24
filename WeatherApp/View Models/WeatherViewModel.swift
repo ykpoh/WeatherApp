@@ -37,16 +37,22 @@ class WeatherViewModel: WeatherViewModelProtocol {
     
     var showSpinner: Box<Bool> = Box(false)
     
+    var currentWeather: CurrentWeather?
+    
     var apiService: WeatherAPIServiceProtocol
     
-    init(apiService: WeatherAPIServiceProtocol = WeatherAPIService()) {
+    var notificationCenter: NotificationCenter
+    
+    init(apiService: WeatherAPIServiceProtocol = WeatherAPIService(), notificationCenter: NotificationCenter = NotificationCenter.default) {
         self.apiService = apiService
         
-        NotificationCenter.default.addObserver(self, selector: #selector(updateLocation(_:)), name: Constant.updateLocationNotification, object: nil)
+        self.notificationCenter = notificationCenter
+        
+        self.notificationCenter.addObserver(self, selector: #selector(updateLocation(_:)), name: Constant.updateLocationNotification, object: nil)
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        notificationCenter.removeObserver(self)
     }
     
     func getCurrentWeather(latitude: Double, longitude: Double) {
@@ -106,4 +112,10 @@ class WeatherViewModel: WeatherViewModelProtocol {
         }
     }
     
+}
+
+extension WeatherViewModel: Equatable {
+    static func == (lhs: WeatherViewModel, rhs: WeatherViewModel) -> Bool {
+        return lhs.currentWeather == rhs.currentWeather
+    }
 }

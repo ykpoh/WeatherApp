@@ -20,8 +20,11 @@ class SearchLocationViewModel: SearchLocationViewModelProtocol {
                             
     var apiService: WeatherAPIServiceProtocol
     
-    init(apiService: WeatherAPIServiceProtocol = WeatherAPIService()) {
+    var notificationCenter: NotificationCenter
+    
+    init(apiService: WeatherAPIServiceProtocol = WeatherAPIService(), notificationCenter: NotificationCenter = NotificationCenter.default) {
         self.apiService = apiService
+        self.notificationCenter = notificationCenter
     }
     
     func getLocationSearchResult(query: String) {
@@ -42,7 +45,7 @@ class SearchLocationViewModel: SearchLocationViewModelProtocol {
     
     func postNotification(location: Location) {
         let dict:[String: Location] = [Constant.userInfoLocation: location]
-        NotificationCenter.default.post(name: Constant.updateLocationNotification, object: nil, userInfo: dict)
+        notificationCenter.post(name: Constant.updateLocationNotification, object: nil, userInfo: dict)
     }
     
     private func getAPIErrorMessage(_ error: WeatherAPIError) -> String {

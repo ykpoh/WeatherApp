@@ -98,7 +98,7 @@ class WeatherAPIServiceTests: XCTestCase {
             expectation.fulfill()
         }
         
-        wait(for: [expectation], timeout: 1)
+        wait(for: [expectation], timeout: 2)
     }
     
     func testCallGetLocationSearchResultSuccessfully() {
@@ -130,7 +130,7 @@ class WeatherAPIServiceTests: XCTestCase {
             expectation.fulfill()
         }
         
-        wait(for: [expectation], timeout: 1)
+        wait(for: [expectation], timeout: 2)
     }
     
     func testGetLocationSearchResultFromCache() {

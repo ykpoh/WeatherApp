@@ -8,13 +8,13 @@
 import Foundation
 
 // MARK: - Welcome
-struct CurrentWeather: Codable {
-    let location: Location?
-    let current: Current?
+struct CurrentWeather: Codable, Equatable {
+    var location: Location?
+    var current: Current?
 }
 
 // MARK: - Current
-struct Current: Codable {
+struct Current: Codable, Equatable {
     let lastUpdatedEpoch: Int?
     let lastUpdated: String?
     let tempC, tempF: Double?
@@ -57,13 +57,13 @@ struct Current: Codable {
 }
 
 // MARK: - Condition
-struct Condition: Codable {
+struct Condition: Codable, Equatable {
     let text, icon: String?
     let code: Int?
 }
 
 // MARK: - Location
-struct Location: Codable {
+struct Location: Codable, Equatable {
     let id: Int?
     let url: String?
     let name, region, country: String?

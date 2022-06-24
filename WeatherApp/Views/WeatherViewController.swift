@@ -51,21 +51,12 @@ class WeatherViewController: UIViewController {
         
         locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
         
-        locationManager.requestWhenInUseAuthorization()
+        requestLocationAccess()
         
-        switch locationManager.authorizationStatus {
-        case .denied, .restricted:
-            presentAllowLocationAlert()
-        default:
-            if CLLocationManager.locationServicesEnabled() {
-                locationManager.delegate = self
-                locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-                locationManager.requestLocation()
-            } else {
-                presentAllowLocationAlert()
-            }
-        }
-        
+        setupSubscribers()
+    }
+    
+    private func setupSubscribers() {
         viewModel.locationButtonTitle.bind { [weak self] value in
             guard let strongSelf = self else { return }
             strongSelf.locationButton.setTitle(value, for: .normal)
@@ -114,6 +105,32 @@ class WeatherViewController: UIViewController {
         }
     }
     
+    private func requestLocationAccess() {
+        locationManager.requestWhenInUseAuthorization()
+        
+        switch locationManager.authorizationStatus {
+        case .denied, .restricted:
+            presentAllowLocationAlert()
+        default:
+            if CLLocationManager.locationServicesEnabled() {
+                locationManager.delegate = self
+                locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+                locationManager.requestLocation()
+            } else {
+                presentAllowLocationAlert()
+            }
+        }
+    }
+    
+    @objc func locationButtonPressed() {
+        let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "\(SearchLocationController.self)") as? SearchLocationController
+        navigationController?.pushViewController(vc!, animated: true)
+    }
+    
+}
+
+// MARK: UI helpers
+extension WeatherViewController {
     func showSpinner() {
         activityIndicator.startAnimating()
         view.addSubview(activityIndicator)
@@ -123,11 +140,6 @@ class WeatherViewController: UIViewController {
     func removeSpinner() {
         hoverView.removeFromSuperview()
         activityIndicator.removeFromSuperview()
-    }
-    
-    @objc func locationButtonPressed() {
-        let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "\(SearchLocationController.self)") as? SearchLocationController
-        navigationController?.pushViewController(vc!, animated: true)
     }
     
     private func presentAllowLocationAlert() {
@@ -142,7 +154,6 @@ class WeatherViewController: UIViewController {
         alertController.addAction(settingsAction)
         present(alertController, animated: true, completion: nil)
     }
-    
 }
 
 extension WeatherViewController: CLLocationManagerDelegate {
