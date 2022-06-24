@@ -19,16 +19,16 @@ protocol WeatherAPIServiceProtocol {
     func getLocationSearchResult(query: String, completion: @escaping ([Location]?, WeatherAPIError?) -> ())
 }
 
-let searchResultCache = NSCache<AnyObject, AnyObject>()
-
 class WeatherAPIService: WeatherAPIServiceProtocol {
     
     let baseURLString = "https://api.weatherapi.com/v1"
     let apiKey = "346fa87e7ac74727a1a72424222405"
     let session: URLSession
-    
-    init(session: URLSession = .shared) {
+    let searchResultCache: NSCache<AnyObject, AnyObject>
+
+    init(session: URLSession = .shared, searchResultCache: NSCache<AnyObject, AnyObject> = Cache.locationResultCache) {
         self.session = session
+        self.searchResultCache = searchResultCache
     }
     
     func getCurrentWeather(query: String, completion: @escaping (CurrentWeather?, WeatherAPIError?) -> ()) {
@@ -73,7 +73,7 @@ class WeatherAPIService: WeatherAPIServiceProtocol {
                     let decoder = JSONDecoder()
                     let model = try decoder.decode([Location].self, from: data!)
                     
-                    searchResultCache.setObject(SearchResultHolder(locations: model), forKey: url as AnyObject)
+                    strongSelf.searchResultCache.setObject(SearchResultHolder(locations: model), forKey: url as AnyObject)
                     
                     completion(model, nil)
                 } catch {

@@ -1,11 +1,21 @@
 //
-//  UIViewController+Extensions.swift
+//  Constant.swift
 //  WeatherApp
 //
-//  Created by YK Poh on 21/06/2022.
+//  Created by YK Poh on 22/06/2022.
 //
 
 import UIKit
+
+class Constant {
+    static let updateLocationNotification = NSNotification.Name("UpdateLocation")
+    static let userInfoLocation = "location"
+}
+
+class Cache {
+    static let locationResultCache = NSCache<AnyObject, AnyObject>()
+    static let imageCache = NSCache<AnyObject, AnyObject>()
+}
 
 extension UIViewController {
     func showAlert( _ message: String) {

@@ -10,10 +10,14 @@ import XCTest
 
 extension XCTestCase {
     func getModel<T>(filename: String) -> T where T: Codable {
-        let bundle = Bundle(for: type(of: self))
-        let url = bundle.url(forResource: filename, withExtension: "json")!
-        let data = try! Data(contentsOf: url)
+        let data = getData(filename: filename)
         let decoder = JSONDecoder()
         return try! decoder.decode(T.self, from: data)
+    }
+    
+    func getData(filename: String) -> Data {
+        let bundle = Bundle(for: type(of: self))
+        let url = bundle.url(forResource: filename, withExtension: "json")!
+        return try! Data(contentsOf: url)
     }
 }
