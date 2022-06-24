@@ -11,6 +11,7 @@ protocol SearchLocationViewModelProtocol {
     var searchResults: Box<[SearchResultTVCViewModel]> { get }
     var errorMessage: Box<String?> { get }
     func getLocationSearchResult(query: String)
+    func postNotification(location: Location)
 }
 
 class SearchLocationViewModel: SearchLocationViewModelProtocol {

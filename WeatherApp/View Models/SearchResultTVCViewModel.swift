@@ -16,3 +16,9 @@ class SearchResultTVCViewModel {
         self.location.value = location
     }
 }
+
+extension SearchResultTVCViewModel: Equatable {
+    static func == (lhs: SearchResultTVCViewModel, rhs: SearchResultTVCViewModel) -> Bool {
+        lhs.location.value == rhs.location.value
+    }
+}

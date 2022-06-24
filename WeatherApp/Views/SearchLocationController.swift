@@ -21,7 +21,7 @@ class SearchLocationController: UIViewController {
         return searchController
     }()
     
-    let viewModel = SearchLocationViewModel()
+    var viewModel: SearchLocationViewModelProtocol = SearchLocationViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,7 +33,11 @@ class SearchLocationController: UIViewController {
         tableView.dataSource = self
         tableView.showsVerticalScrollIndicator = false
         tableView.register(UINib(nibName: "\(SearchResultTableViewCell.self)", bundle: nil), forCellReuseIdentifier: "\(SearchResultTableViewCell.self)")
-
+        
+        setupSubscribers()
+    }
+    
+    func setupSubscribers() {
         viewModel.searchResults.bind { [weak self] result in
             guard let strongSelf = self else { return }
             strongSelf.tableView.reloadData()
