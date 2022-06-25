@@ -11,7 +11,11 @@ class ImageLoader: UIImageView {
 
     var imageURL: URL?
 
-    let activityIndicator = UIActivityIndicatorView()
+    var activityIndicator = UIActivityIndicatorView()
+    
+    var cacheStorage: NSCache<AnyObject, AnyObject> = Cache.imageCache
+    
+    var session: URLSession = .shared
 
     func loadImageWithUrl(_ url: URL) {
 
@@ -29,7 +33,7 @@ class ImageLoader: UIImageView {
         activityIndicator.startAnimating()
 
         // retrieves image if already available in cache
-        if let imageFromCache = Cache.imageCache.object(forKey: url as AnyObject) as? UIImage {
+        if let imageFromCache = cacheStorage.object(forKey: url as AnyObject) as? UIImage {
 
             self.image = imageFromCache
             activityIndicator.stopAnimating()
@@ -37,7 +41,7 @@ class ImageLoader: UIImageView {
         }
 
         // image does not available in cache.. so retrieving it from url...
-        URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+        session.dataTask(with: url, completionHandler: { (data, response, error) in
 
             if error != nil {
                 print(error as Any)
@@ -55,7 +59,7 @@ class ImageLoader: UIImageView {
                         self.image = imageToCache
                     }
 
-                    Cache.imageCache.setObject(imageToCache, forKey: url as AnyObject)
+                    self.cacheStorage.setObject(imageToCache, forKey: url as AnyObject)
                 }
                 self.activityIndicator.stopAnimating()
             })

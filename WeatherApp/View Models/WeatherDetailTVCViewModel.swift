@@ -16,3 +16,9 @@ class WeatherDetailTVCViewModel {
         self.value.value = value
     }
 }
+
+extension WeatherDetailTVCViewModel: Equatable {
+    static func == (lhs: WeatherDetailTVCViewModel, rhs: WeatherDetailTVCViewModel) -> Bool {
+        lhs.title.value == rhs.title.value && lhs.value.value == rhs.value.value
+    }
+}

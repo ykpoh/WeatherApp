@@ -39,7 +39,7 @@ class WeatherViewController: UIViewController {
     
     let locationManager = CLLocationManager()
     
-    let viewModel = WeatherViewModel()
+    var viewModel: WeatherViewModelProtocol = WeatherViewModel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -166,6 +166,7 @@ extension WeatherViewController: CLLocationManagerDelegate {
         guard let latitude = manager.location?.coordinate.latitude, let longitude = manager.location?.coordinate.longitude else { return }
         viewModel.getCurrentWeather(latitude: latitude, longitude: longitude)
     }
+    
 }
 
 extension WeatherViewController: UITableViewDelegate, UITableViewDataSource {
