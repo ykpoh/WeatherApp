@@ -156,6 +156,13 @@ extension WeatherViewController {
     }
 }
 
+class MockLocationManager: CLLocationManager {
+    override func requestLocation() {
+        super.requestLocation()
+        delegate?.locationManager?(self, didUpdateLocations: [CLLocation()])
+    }
+}
+
 extension WeatherViewController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

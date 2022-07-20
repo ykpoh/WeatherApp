@@ -22,7 +22,8 @@ protocol WeatherAPIServiceProtocol {
 class WeatherAPIService: WeatherAPIServiceProtocol {
     
     let baseURLString = "https://api.weatherapi.com/v1"
-    let apiKey = "346fa87e7ac74727a1a72424222405"
+    // Get API Key from Weather API by registering in their website
+    let apiKey = "..."
     let session: URLSession
     let searchResultCache: NSCache<AnyObject, AnyObject>
 
